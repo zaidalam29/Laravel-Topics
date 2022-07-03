@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RazorpayPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,11 +18,16 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::view('home', 'home');
 Route::view('about', 'about');
+Route::view('home', 'home');
 
 Route::view('noaccess', 'noaccess');
 
 Route::group(['middleware'=>['protectedPage']], function(){
     Route::view('user', 'user');
+
+
 });
+
+Route::get('payment', [RazorpayPaymentController::class, 'index']);
+Route::post('payments', [RazorpayPaymentController::class, 'store']);

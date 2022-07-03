@@ -1,0 +1,171 @@
+**************************** How To Integrate Razorpay Payment Gateway In Laravel *********************************************
+
+1. Install New Laravel Project.
+2. Install Razorpay Package.
+3. Create Router.
+4. Create Controller and Use Paste Code.
+5. Create View
+
+*********************************************************************************************************************
+
+Step 1: Install New Laravel Project
+=> laravel new razorpaylara
+
+*********************************************************************************************************************
+
+Step 2: Install Razorpay Package
+=> composer require razorpay/razorpay
+
+*********************************************************************************************************************
+
+Step 3: Create Router
+=> Please paste the below code in your web.php file
+
+<?php
+  
+use Illuminate\Support\Facades\Route;
+  
+use App\Http\Controllers\RazorpayPaymentController;
+  
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+  
+Route::get('payment', [RazorpayPaymentController::class, 'index']);
+Route::post('payments', [RazorpayPaymentController::class, 'store']);
+
+*********************************************************************************************************************
+
+Step 4: Create Controller and paste code.
+=> php artisan make:controller RazorpayPaymentController
+=> please paste the below code in your controller file
+
+<?php
+  
+namespace App\Http\Controllers;
+  
+use Illuminate\Http\Request;
+use Razorpay\Api\Api;
+use Session;
+use Exception;
+  
+class RazorpayPaymentController extends Controller
+{
+    /**
+     * Write code on Method
+     *
+     * @return response()
+     */
+    public function index()
+    {        
+        return view('payment');
+    }
+  
+    /**
+     * Write code on Method
+     *
+     * @return response()
+     */
+    public function store(Request $request)
+    {
+        $input = $request->all();
+  
+        $api = new Api("PLAESE_PASTE_YOUR_PRIVATE_KEY_HERE", "PASTE_YOUR_SECRET_KEY_HERE");
+  
+        $payment = $api->payment->fetch($input['razorpay_payment_id']);
+  
+        if(count($input)  && !empty($input['razorpay_payment_id'])) {
+            try {
+                $response = $api->payment->fetch($input['razorpay_payment_id'])->capture(array('amount'=>$payment['amount'])); 
+  
+            } catch (Exception $e) {
+                return  $e->getMessage();
+                Session::put('error',$e->getMessage());
+                return redirect()->back();
+            }
+        }
+          
+        Session::put('success', 'Payment successful');
+        return redirect()->back();
+    }
+}
+
+*********************************************************************************************************************
+
+Step 5:- Create View
+=> Please create a payment.blade.php file and paste below code here
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- CSRF Token -->
+      <meta name="csrf-token" content="{{ csrf_token() }}">
+      <title>Laravel 8 - Razorpay Payment Gateway Integration</title>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+   </head>
+   <body>
+      <div id="app">
+         <main class="py-4">
+            <div class="container">
+               <div class="row">
+                  <div class="col-md-6 offset-3 col-md-offset-6">
+                     @if($message = Session::get('error'))
+                     <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                        </button>
+                        <strong>Error!</strong> {{ $message }}
+                     </div>
+                     @endif
+                     @if($message = Session::get('success'))
+                     <div class="alert alert-success alert-dismissible fade {{ Session::has('success') ? 'show' : 'in' }}" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                        </button>
+                        <strong>Success!</strong> {{ $message }}
+                     </div>
+                     @endif
+                     <div class="card card-default">
+                        <div class="card-header">
+                           Laravel 8- Razorpay Payment Gateway Integration
+                        </div>
+                        <div class="card-body text-center">
+                           <form action="/payment" method="POST" >
+                              @csrf
+                              <script src="https://checkout.razorpay.com/v1/checkout.js"
+                                 data-key="PLEASE_PASTE_YOUR_PRIVATE_KEY_HERE"
+                                 data-amount="50001" 
+                                 data-currency="INR"
+                                 data-buttontext="Pay 500 INR"
+                                 data-name="Zaid Razor"
+                                 data-description="Razorpay"
+                                 data-image="image_src"
+                                 data-prefill.name="name"
+                                 data-prefill.email="email"
+                                 data-theme.color="#F37254"></script>
+                           </form>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </main>
+      </div>
+   </body>
+</html>
+
+*********************************************************************************************************************
+
+=> Now, Run your project using below command.
+
+php artisan serve
